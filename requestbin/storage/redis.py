@@ -4,6 +4,7 @@ import time
 import cPickle as pickle
 
 import redis
+from redis.sentinel import Sentinel
 
 from ..models import Bin
 
@@ -14,7 +15,8 @@ class RedisStorage():
 
     def __init__(self, bin_ttl):
         self.bin_ttl = bin_ttl
-        self.redis = redis.StrictRedis(host=config.REDIS_HOST, port=config.REDIS_PORT, db=config.REDIS_DB, password=config.REDIS_PASSWORD)
+        sentinel = Sentinel([(config.REDIS_HOST, 26379)], socket_timeout=0.1)
+        self.redis = sentinel.master_for('mymaster', socket_timeout=0.1)
 
     def _key(self, name):
         return '{}_{}'.format(self.prefix, name)
